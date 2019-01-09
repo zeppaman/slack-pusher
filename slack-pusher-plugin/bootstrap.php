@@ -123,7 +123,8 @@ function spp_settings_init(  ) {
 
 
 }
-
+define('WP_HOME','http://example.com');
+define('WP_SITEURL','http://example.com');
 
    function spp_test_api( $data ) {
 	$posts = get_posts( array(
