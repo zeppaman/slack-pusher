@@ -55,36 +55,76 @@ function wpps_requirements_error() {
 
 	require_once( dirname( __FILE__ ) . '/views/requirements-error.php' );
 }
+add_action( 'admin_menu', 'spp_add_admin_menu' );
+add_action( 'admin_init', 'spp_settings_init' );
 
 
-function spp_settings_init() {
-	// register a new setting for "wporg" page
-	register_setting( 'wporg', 'wporg_options' );
-	
-	// register a new section in the "wporg" page
+
+
+
+
+   function spp_add_admin_menu(  ) { 
+
+	add_options_page( 'Slack Pusher Plugin', 'Slack Pusher Plugin', 'manage_options', 'slack_pusher_plugin', 'spp_options_page' );
+
+}
+
+
+function spp_settings_init(  ) { 
+
+	register_setting( 'pluginPage', 'spp_settings' );
+
 	add_settings_section(
-	'spp_section_developers',
-	__( 'The Matrix has you.', 'wporg' ),
-	'spp_section_developers_cb',
-	'spp'
+		'spp_pluginPage_section', 
+		__( 'Your section description', 'wordpress' ), 
+		'spp_settings_section_callback', 
+		'pluginPage'
 	);
-	
-	// register a new field in the "wporg_section_developers" section, inside the "wporg" page
-	add_settings_field(
-	'spp_field_pill', // as of WP 4.6 this value is used only internally
-	// use $args' label_for to populate the id inside the callback
-	__( 'Pill', 'spp' ),
-	'spp_field_pill_cb',
-	'spp',
-	'spp_section_developers',
-	[
-	'label_for' => 'wporg_field_pill',
-	'class' => 'wporg_row',
-	'spp_custom_data' => 'custom',
-	]
+
+	add_settings_field( 
+		'spp_text_field_0', 
+		__( 'Settings field description', 'wordpress' ), 
+		'spp_text_field_0_render', 
+		'pluginPage', 
+		'spp_pluginPage_section' 
 	);
-   }
-	
+
+	add_settings_field( 
+		'spp_checkbox_field_1', 
+		__( 'Settings field description', 'wordpress' ), 
+		'spp_checkbox_field_1_render', 
+		'pluginPage', 
+		'spp_pluginPage_section' 
+	);
+
+	add_settings_field( 
+		'spp_radio_field_2', 
+		__( 'Settings field description', 'wordpress' ), 
+		'spp_radio_field_2_render', 
+		'pluginPage', 
+		'spp_pluginPage_section' 
+	);
+
+	add_settings_field( 
+		'spp_textarea_field_3', 
+		__( 'Settings field description', 'wordpress' ), 
+		'spp_textarea_field_3_render', 
+		'pluginPage', 
+		'spp_pluginPage_section' 
+	);
+
+	add_settings_field( 
+		'spp_select_field_4', 
+		__( 'Settings field description', 'wordpress' ), 
+		'spp_select_field_4_render', 
+		'pluginPage', 
+		'spp_pluginPage_section' 
+	);
+
+
+}
+
+
    function spp_test_api( $data ) {
 	$posts = get_posts( array(
 	  'author' => $data['id'],
