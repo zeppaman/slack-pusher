@@ -56,7 +56,7 @@ function wpps_requirements_error() {
 	require_once( dirname( __FILE__ ) . '/views/requirements-error.php' );
 }
 add_action( 'admin_menu', 'spp_add_admin_menu' );
-add_action( 'admin_init', 'spp_settings_init' );
+
 
 
 
@@ -67,64 +67,52 @@ add_action( 'admin_init', 'spp_settings_init' );
 
 	add_options_page( 'Slack Pusher Plugin', 'Slack Pusher Plugin', 'manage_options', 'slack_pusher_plugin', 'spp_options_page' );
 
+	//call register settings function
+	add_action( 'admin_init', 'register_spp_settings' );
 }
 
 
-function spp_settings_init(  ) { 
-
-	register_setting( 'pluginPage', 'spp_settings' );
-
-	add_settings_section(
-		'spp_pluginPage_section', 
-		__( 'Your section description', 'wordpress' ), 
-		'spp_settings_section_callback', 
-		'pluginPage'
-	);
-
-	add_settings_field( 
-		'spp_text_field_0', 
-		__( 'Settings field description', 'wordpress' ), 
-		'spp_text_field_0_render', 
-		'pluginPage', 
-		'spp_pluginPage_section' 
-	);
-
-	add_settings_field( 
-		'spp_checkbox_field_1', 
-		__( 'Settings field description', 'wordpress' ), 
-		'spp_checkbox_field_1_render', 
-		'pluginPage', 
-		'spp_pluginPage_section' 
-	);
-
-	add_settings_field( 
-		'spp_radio_field_2', 
-		__( 'Settings field description', 'wordpress' ), 
-		'spp_radio_field_2_render', 
-		'pluginPage', 
-		'spp_pluginPage_section' 
-	);
-
-	add_settings_field( 
-		'spp_textarea_field_3', 
-		__( 'Settings field description', 'wordpress' ), 
-		'spp_textarea_field_3_render', 
-		'pluginPage', 
-		'spp_pluginPage_section' 
-	);
-
-	add_settings_field( 
-		'spp_select_field_4', 
-		__( 'Settings field description', 'wordpress' ), 
-		'spp_select_field_4_render', 
-		'pluginPage', 
-		'spp_pluginPage_section' 
-	);
-
-
+function register_spp_settings() {
+	//register our settings
+	register_setting( 'spp-settings-group', 'new_option_name' );
+	register_setting( 'spp-settings-group', 'some_other_option' );
+	register_setting( 'spp-settings-group', 'option_etc' );
 }
-define('WP_HOME','http://example.com');
-define('WP_SITEURL','http://example.com');
+
+
+
+function spp_options_page()
+{
+	?>
+	<div class="wrap">
+	<h1>Your Plugin Name</h1>
+	
+	<form method="post" action="options.php">
+		<?php settings_fields( 'spp-settings-group' ); ?>
+		<?php do_settings_sections( 'spp-settings-group' ); ?>
+		<table class="form-table">
+			<tr valign="top">
+			<th scope="row">New Option Name</th>
+			<td><input type="text" name="new_option_name" value="<?php echo esc_attr( get_option('new_option_name') ); ?>" /></td>
+			</tr>
+			 
+			<tr valign="top">
+			<th scope="row">Some Other Option</th>
+			<td><input type="text" name="some_other_option" value="<?php echo esc_attr( get_option('some_other_option') ); ?>" /></td>
+			</tr>
+			
+			<tr valign="top">
+			<th scope="row">Options, Etc.</th>
+			<td><input type="text" name="option_etc" value="<?php echo esc_attr( get_option('option_etc') ); ?>" /></td>
+			</tr>
+		</table>
+		
+		<?php submit_button(); ?>
+	
+	</form>
+	</div>
+	<?php } 
+
 
    function spp_test_api( $data ) {
 	$posts = get_posts( array(

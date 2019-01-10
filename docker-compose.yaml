@@ -26,3 +26,4 @@ services:
        WORDPRESS_DB_HOST: db:3306
        WORDPRESS_DB_USER: wordpress
        WORDPRESS_DB_PASSWORD: wordpress
+       WORDPRESS_CONFIG_EXTRA:  define('WP_HOME',$_SERVER['HTTP_HOST']); define('WP_SITEURL',$_SERVER['HTTP_HOST']); error_reporting(E_ALL); ini_set('display_errors', 1);
