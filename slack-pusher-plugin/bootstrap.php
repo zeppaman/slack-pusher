@@ -8,10 +8,6 @@ Author:      Ian Dunn
 Author URI:  http://iandunn.name
 */
 
-/*
- * This plugin was built on top of WordPress-Plugin-Skeleton by Ian Dunn.
- * See https://github.com/iandunn/WordPress-Plugin-Skeleton for details.
- */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	die( 'Access denied.' );
@@ -38,11 +34,6 @@ function wpps_requirements_met() {
 		return false;
 	}
 
-	/*
-	if ( ! is_plugin_active( 'plugin-directory/plugin-file.php' ) ) {
-		return false;
-	}
-	*/
 
 	return true;
 }
@@ -55,12 +46,8 @@ function wpps_requirements_error() {
 
 	require_once( dirname( __FILE__ ) . '/views/requirements-error.php' );
 }
+
 add_action( 'admin_menu', 'spp_add_admin_menu' );
-
-
-
-
-
 
 
    function spp_add_admin_menu(  ) { 
