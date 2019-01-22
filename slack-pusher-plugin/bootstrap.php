@@ -76,7 +76,7 @@ function register_spp_settings() {
 	//register our settings
 	register_setting( 'spp-settings-group', 'wait_challange' );
 	register_setting( 'spp-settings-group', 'token' );
-	register_setting( 'spp-settings-group', 'challange' );
+	//register_setting( 'spp-settings-group', 'challange' );
 }
 
 
@@ -92,19 +92,19 @@ function spp_options_page()
 		<?php do_settings_sections( 'spp-settings-group' ); ?>
 		<table class="form-table">
 			<tr valign="top">
-			<th scope="row">New Option Name</th>
-			<td><input type="text" name="wait_challange" value="<?php echo esc_attr( get_option('wait_challange') ); ?>" /></td>
+			<th scope="row">Wating for challange</th>
+			<td><input type="checkbox" name="wait_challange" value="1" <?php checked( '1', get_option( 'wait_challange' ) ); ?>  /></td>
 			</tr>
 			 
 			<tr valign="top">
-			<th scope="row">Some Other Option</th>
-			<td><input type="text" name="token" value="<?php echo esc_attr( get_option('token') ); ?>" /></td>
+			<th scope="row">Token</th>
+			<td><input type="text" name="token" value="<?php echo esc_attr( get_option('token') ); ?>" disabled /></td>
 			</tr>
 			
-			<tr valign="top">
-			<th scope="row">Options, Etc.</th>
-			<td><input type="text" name="challange" value="<?php echo esc_attr( get_option('challange') ); ?>" /></td>
-			</tr>
+			<!-- <tr valign="top">
+			<th scope="row">Challange</th>
+			<td><input type="text" name="challange" value="<?php echo esc_attr( get_option('challange') ); ?>"   disabled/></td>
+			</tr> -->
 		</table>
 		
 		<?php submit_button(); ?>
@@ -114,12 +114,33 @@ function spp_options_page()
 	<?php } 
 
 
+
+   function renderHtml($text)
+   {
+	   
+
+   $rendermap=array(
+	'/((?<!\\*)\\*(?!\\*))(.*)((?<!\\*)\*(?!\\*))/i'=> '<b>$2</b>',
+    '/((?<!_)_(?!_))(.*)((?<!_)_(?!_))/i'=>'<i>$2</i>',
+    '/((?<!\\~)\\~(?!\\~))(.*)((?<!\\~)\\~(?!\\~))/i'=> '<strike>$2</strike>',    
+   );
+
+
+		foreach($rendermap as $wrapper=>$html_tag)
+		{
+			$text=preg_replace($wrapper,$html_tag,$text);
+			//error_log("w=>$wrapper  t=>$html_tag  result=> $text");
+
+		}
+		return $text;
+   }
+
    // returns challange payload 
    function sendChallangeResponse($data)
    {
 	   $payload= array();
-	   $payload['challenge']=$data["challange"];
-	   return payload;
+	   $payload['challenge']=$data["challenge"];
+	   return $payload;
    }
 
    function im2post($data)
@@ -172,30 +193,76 @@ function spp_options_page()
 		*/
 
 		//this is just a demo. in real world example slack user should match wordpress user (by mapping o mail)
-        $user=get_users()[0];
+		$user=get_users()[0];
+
+		//error_log(get_users());
+		
+		$text=$data['event']['text'];
+
+		$text=renderHtml($text);
+		error_log($text);
+
+		$lines = explode("\n", $text);
+
+
 
 		$newpost=array(
-			'post_content' =>$data['event']['text'],
-			'post_author' =>  $user->ID,			
+			'post_content' => '<p>'. ((sizeof($lines)<2)? '' : implode('<br>',$lines) ).'</p>',
+			'post_author' =>  $user->ID,
+			'post_title' => $lines[0]
 		);
 
+
+		//error_log($data);
 		
 		return $newpost;
    }
 
    //mange input messages
    function spp_post_message( $data ) {
-	   if(get_option('wait_challange')===TRUE)
+	   error_log("hit post message by slack");
+
+	  // error_log( print_r($data, TRUE));
+
+	  error_log($data['token']);
+	  
+	   $enabled=get_option('wait_challange');
+
+	   if(isset($data['challenge']))
 	   {
-		   //avoid unwanted registration
-		   set_option('wait_challange',TRUE);
-		   return sendChallangeResponse($data);
+		
+            error_log("entering challenge, enabled:".$enabled);
+			if($enabled==TRUE)
+			{
+				error_log("accepting challenge");
+				//avoid unwanted registration
+				update_option('wait_challange',FALSE);
+				update_option('token',$data["token"]);
+				return sendChallangeResponse($data);
 
-	   }
+			}
+			else
+			{
+				//unhautorized
+				error_log("unauthorized challenge");
+				echo("unauthorized");
+				exit;
+			}
+	 }
+	 else
+	 {
+		 
+		 if(get_option("token") != $data['token'])
+		 {
+			//unhautorized
+			error_log("unauthorized challenge");
+			echo("unauthorized");
+			exit;
+		}
 
-	$newpost=im2post($data);
-	wp_insert_post($newpost);
-   
+	 	$newpost=im2post($data);
+	 	wp_insert_post($newpost);
+	}
 	return;
   }
 
@@ -204,7 +271,7 @@ function spp_options_page()
 
 	add_action( 'rest_api_init', function () {
 		register_rest_route( 'slack-pusher/v1', '/postmessage', array(
-		  'methods' => 'GET',
+		  'methods' => 'POST',
 		  'callback' => 'spp_post_message',
 		) );
 	  } );
