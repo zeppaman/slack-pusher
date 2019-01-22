@@ -85,7 +85,7 @@ function spp_options_page()
 {
 	?>
 	<div class="wrap">
-	<h1>Your Plugin Name</h1>
+	<h1>Slack Pusher</h1>
 	
 	<form method="post" action="options.php">
 		<?php settings_fields( 'spp-settings-group' ); ?>
