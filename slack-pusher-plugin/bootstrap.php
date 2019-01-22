@@ -74,9 +74,9 @@ add_action( 'admin_menu', 'spp_add_admin_menu' );
 
 function register_spp_settings() {
 	//register our settings
-	register_setting( 'spp-settings-group', 'new_option_name' );
-	register_setting( 'spp-settings-group', 'some_other_option' );
-	register_setting( 'spp-settings-group', 'option_etc' );
+	register_setting( 'spp-settings-group', 'wait_challange' );
+	register_setting( 'spp-settings-group', 'token' );
+	register_setting( 'spp-settings-group', 'challange' );
 }
 
 
@@ -93,17 +93,17 @@ function spp_options_page()
 		<table class="form-table">
 			<tr valign="top">
 			<th scope="row">New Option Name</th>
-			<td><input type="text" name="new_option_name" value="<?php echo esc_attr( get_option('new_option_name') ); ?>" /></td>
+			<td><input type="text" name="wait_challange" value="<?php echo esc_attr( get_option('wait_challange') ); ?>" /></td>
 			</tr>
 			 
 			<tr valign="top">
 			<th scope="row">Some Other Option</th>
-			<td><input type="text" name="some_other_option" value="<?php echo esc_attr( get_option('some_other_option') ); ?>" /></td>
+			<td><input type="text" name="token" value="<?php echo esc_attr( get_option('token') ); ?>" /></td>
 			</tr>
 			
 			<tr valign="top">
 			<th scope="row">Options, Etc.</th>
-			<td><input type="text" name="option_etc" value="<?php echo esc_attr( get_option('option_etc') ); ?>" /></td>
+			<td><input type="text" name="challange" value="<?php echo esc_attr( get_option('challange') ); ?>" /></td>
 			</tr>
 		</table>
 		
@@ -114,25 +114,98 @@ function spp_options_page()
 	<?php } 
 
 
-   function spp_test_api( $data ) {
-	$posts = get_posts( array(
-	  'author' => $data['id'],
-	) );
+   // returns challange payload 
+   function sendChallangeResponse($data)
+   {
+	   $payload= array();
+	   $payload['challenge']=$data["challange"];
+	   return payload;
+   }
+
+   function im2post($data)
+   {
+	   /*
+	    slack input
+	   {
+		"token": "one-long-verification-token",
+		"team_id": "T061EG9R6",
+		"api_app_id": "A0PNCHHK2",
+		"event": {
+			"type": "message",
+			"channel": "D024BE91L",
+			"user": "U2147483697",
+			"text": "Hello hello can you hear me?",
+			"ts": "1355517523.000005",
+			"event_ts": "1355517523.000005",
+			"channel_type": "im"
+		},
+		"type": "event_callback",
+		"authed_teams": [
+			"T061EG9R6"
+		],
+		"event_id": "Ev0PV52K21",
+		"event_time": 1355517523
+		}*/
+
+		/*
+		 WP post defaults
+		 
+		$defaults = array(
+				'post_author' => $user_id,
+				'post_content' => '',
+				'post_content_filtered' => '',
+				'post_title' => '',
+				'post_excerpt' => '',
+				'post_status' => 'draft',
+				'post_type' => 'post',
+				'comment_status' => '',
+				'ping_status' => '',
+				'post_password' => '',
+				'to_ping' =>  '',
+				'pinged' => '',
+				'post_parent' => 0,
+				'menu_order' => 0,
+				'guid' => '',
+				'import_id' => 0,
+				'context' => '',
+			);				 
+		*/
+
+		//this is just a demo. in real world example slack user should match wordpress user (by mapping o mail)
+        $user=get_users()[0];
+
+		$newpost=array(
+			'post_content' =>$data['event']['text'],
+			'post_author' =>  $user->ID,			
+		);
+
+		
+		return $newpost;
+   }
+
+   //mange input messages
+   function spp_post_message( $data ) {
+	   if(get_option('wait_challange')===TRUE)
+	   {
+		   //avoid unwanted registration
+		   set_option('wait_challange',TRUE);
+		   return sendChallangeResponse($data);
+
+	   }
+
+	$newpost=im2post($data);
+	wp_insert_post($newpost);
    
-	if ( empty( $posts ) ) {
-	  return null;
-	}
-   
-	return $posts[0]->post_title;
+	return;
   }
 
 
 
 
 	add_action( 'rest_api_init', function () {
-		register_rest_route( 'slack-pusher/v1', '/post', array(
+		register_rest_route( 'slack-pusher/v1', '/postmessage', array(
 		  'methods' => 'GET',
-		  'callback' => 'spp_test_api',
+		  'callback' => 'spp_post_message',
 		) );
 	  } );
 
