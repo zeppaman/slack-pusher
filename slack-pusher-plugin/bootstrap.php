@@ -1,11 +1,17 @@
 <?php
 /*
 Plugin Name: Slack Pusher Plugin
-Plugin URI:  https://github.com/iandunn/WordPress-Plugin-Skeleton
-Description: The skeleton for an object-oriented/MVC WordPress plugin
+Plugin URI:  https://github.com/zeppaman/slack-pusher/
+Description: Publish your post from slack messages
 Version:     0.4a
-Author:      Ian Dunn
-Author URI:  http://iandunn.name
+Author:      Daniele Fontani
+Author URI:  https://github.com/zeppaman/
+*/
+
+
+/*
+This module is creade using Ian Dunn skeleton plugin as reference
+https://github.com/iandunn/WordPress-Plugin-Skeleton
 */
 
 
